@@ -1,0 +1,28 @@
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    public code: string,
+    message: string,
+    public details?: { field?: string; message: string }[],
+  ) {
+    super(message);
+  }
+}
+
+export async function api<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
+  const res = await fetch(path, {
+    method: init.method ?? 'GET',
+    credentials: 'same-origin',
+    headers: init.body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+    body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
+  });
+  if (res.status === 204) return undefined as T;
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const e = data?.error;
+    throw new ApiError(res.status, e?.code ?? 'error', e?.message ?? res.statusText, e?.details);
+  }
+  return data as T;
+}
+
+export const browserTimezone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';

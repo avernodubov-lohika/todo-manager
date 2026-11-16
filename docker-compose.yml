@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    ports:
+      - '3000:3000'
+    env_file: .env
+    environment:
+      # Docker serves the UI and API from one origin on :3000
+      APP_URL: http://localhost:3000  # edit if you expose the app under another origin
+      DATABASE_URL: file:/data/todo.db
+    volumes:
+      - todo-data:/data
+    restart: unless-stopped
+
+volumes:
+  todo-data:
